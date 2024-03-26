@@ -59,4 +59,15 @@ def putBook(book_id:int, book_update:BookCreate): #id가 없는 것은 동일하
     # 그렇지 않다면 해당 인덱스의 책을 업데이트
     fake_db[i] = Book(id=book_id, **book_update.dict())
 
+@app.delete("/books/{id}", summary="특정 도서 삭제")
+def deleteBook(book_id:int):
+    foundInd = None
+    for i in range(len(fake_db)):
+        if(fake_db[i].id == book_id):
+            foundInd = i
+    if foundInd is None: # 해당 id의 도서가 없는 경우, 404 오류 반환
+        raise HTTPException(status_code=404, detail="찾고자 하는 책이 없습니다.")
+    # 그렇지 않다면 해당 인덱스의 책을 삭제
+    del fake_db[foundInd]
+    return {"message": "정상적으로 삭제되었습니다."}
 
