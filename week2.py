@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 class BookCreate(BaseModel): #클라이언트에서 제공하는 모델 형식
     title: str
@@ -31,6 +33,13 @@ app.add_middleware(
     allow_methods=["*"],  # 허용할 HTTP 메서드들
     allow_headers=["*"],  # 허용할 HTTP 헤더들
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,  # Unprocessable Entity
+        content={"message": "test", "details": exc.errors()},
+    )
 
 @app.get("/", summary="루트 경로로 Hello Library를 반환")
 def root():
