@@ -38,9 +38,25 @@ def postBooks(book: BookCreate):
     new_book = Book(id=new_id, **book.dict())
     fake_db.append(new_book)
 
-@app.post("/books/{id}", summary="특정 도서 정보 반환")
+@app.get("/books/{id}", summary="특정 도서 정보 반환")
 def getBook(book_id:int):
-    b = next((b for book in fake_db if b["id"] == book_id), None)
-    if b is None: # 해당 id의 도서가 없는 경우, 404 오류 반환
+    found = None
+    for b in fake_db:
+        if(b.id == book_id):
+            found = b
+    if found is None: # 해당 id의 도서가 없는 경우, 404 오류 반환
         raise HTTPException(status_code=404, detail="찾고자 하는 책이 없습니다.")
-    return b
+    return found
+
+@app.put("/books/{id}", summary="특정 도서 정보 업데이트")
+def putBook(book_id:int, book_update:BookCreate): #id가 없는 것은 동일하므로 모델 재사용
+    foundInd = None
+    for i in range(len(fake_db)):
+        if(fake_db[i].id == book_id):
+            foundInd = i
+    if foundInd is None: # 해당 id의 도서가 없는 경우, 404 오류 반환
+        raise HTTPException(status_code=404, detail="찾고자 하는 책이 없습니다.")
+    # 그렇지 않다면 해당 인덱스의 책을 업데이트
+    fake_db[i] = Book(id=book_id, **book_update.dict())
+
+
