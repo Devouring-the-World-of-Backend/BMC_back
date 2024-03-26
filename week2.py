@@ -21,7 +21,7 @@ fake_data = {
     "published_year": 2021
 }
 
-fake_db = [Book(fake_data)]
+fake_db = [Book(**fake_data)]
 
 app = FastAPI()
 
@@ -73,9 +73,9 @@ def deleteBook(book_id:int):
     return {"message": "정상적으로 삭제되었습니다."}
 
 def searchBooksFunc(
-    title: Optional[str],
-    author: Optional[str],
-    published_year: Optional[int]):
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    published_year: Optional[int] = None):
     res = fake_db #fake_db를 계속 순회하면서 조건에 맞지 않는 db는 제거
     if(title):
         tmpRes = []
@@ -97,11 +97,11 @@ def searchBooksFunc(
         res = tmpRes
     return res
     
-@app.get("/books/search", summary="조건에 맞는 도서 검색")
+@app.get("/books/search/", summary="조건에 맞는 도서 검색")
 def searchBooks(
-    title: Optional[str],
-    author: Optional[str],
-    published_year: Optional[int] 
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    published_year: Optional[int] = None 
 ): # 셋 다 None인 경우는 Client에서 처리
     return searchBooksFunc(title,author,published_year)
     
