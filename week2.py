@@ -2,22 +2,22 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-class Book(BaseModel):
-    id: int
+class BookCreate(BaseModel): #클라이언트에서 제공하는 모델 형식
     title: str
     author: str
     description: str
     published_year: int = Field(..., ge=1800, le=datetime.now().year)
 
-fake_id = 1
+class Book(BookCreate): #서버에서 처리하는 모델 형식
+    id: int
+
 fake_data = {
-    "id": fake_id,
+    "id": 1,
     "title": "new book",
     "author": "BMC",
     "description": "Book data for test",
     "published_year": 2021
 }
-fake_id += 1
 
 fake_db = [Book(fake_data)]
 
@@ -30,3 +30,11 @@ def root():
 @app.get("/books/", summary="모든 도서 목록을 반환")
 def getBooks():
     return fake_db
+
+@app.post("/books/", summary="새로운 도서 추가")
+def postBooks(book: BookCreate):
+    new_id = len(fake_db) + 1
+    new_book = Book(id=new_id, **book.dict())
+    fake_db.append(new_book)
+
+
