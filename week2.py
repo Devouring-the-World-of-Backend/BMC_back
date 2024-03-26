@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import List, Optional
 
 class BookCreate(BaseModel): #클라이언트에서 제공하는 모델 형식
     title: str
@@ -70,4 +71,38 @@ def deleteBook(book_id:int):
     # 그렇지 않다면 해당 인덱스의 책을 삭제
     del fake_db[foundInd]
     return {"message": "정상적으로 삭제되었습니다."}
+
+def searchBooksFunc(
+    title: Optional[str],
+    author: Optional[str],
+    published_year: Optional[int]):
+    res = fake_db #fake_db를 계속 순회하면서 조건에 맞지 않는 db는 제거
+    if(title):
+        tmpRes = []
+        for item in res:
+            if(title.lower() in item.title.lower()): # 입력한 title이 해당 필드의 제목의 일부인지
+                tmpRes.append(item)
+        res = tmpRes
+    if(author):
+        tmpRes = []
+        for item in res:
+            if(author.lower() in item.author.lower()): # 입력한 author이 해당 필드의 저자의 일부인지
+                tmpRes.append(item)
+        res = tmpRes
+    if(published_year):
+        tmpRes = []
+        for item in res:
+            if(published_year == item.published_year): # 입력한 published_year이 동일한지
+                tmpRes.append(item)
+        res = tmpRes
+    return res
+    
+@app.get("/books/search", summary="조건에 맞는 도서 검색")
+def searchBooks(
+    title: Optional[str],
+    author: Optional[str],
+    published_year: Optional[int] 
+): # 셋 다 None인 경우는 Client에서 처리
+    return searchBooksFunc(title,author,published_year)
+    
 
