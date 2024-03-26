@@ -29,11 +29,11 @@ app = FastAPI()
 def root():
     return "Hello Library!"
 
-@app.get("/books/", summary="모든 도서 목록을 반환")
+@app.get("/books/", status_code=200, summary="모든 도서 목록을 반환")
 def getBooks():
     return fake_db
 
-@app.post("/books/", summary="새로운 도서 추가")
+@app.post("/books/", status_code=201, summary="새로운 도서 추가")
 def postBooks(book: BookCreate):
     new_id = fake_id + 1
     new_book = Book(id=new_id, **book.dict())
@@ -49,7 +49,7 @@ def getBook(book_id:int):
         raise HTTPException(status_code=404, detail="찾고자 하는 책이 없습니다.")
     return found
 
-@app.put("/books/{id}", summary="특정 도서 정보 업데이트")
+@app.put("/books/{id}", status_code=204, summary="특정 도서 정보 업데이트")
 def putBook(book_id:int, book_update:BookCreate): #id가 없는 것은 동일하므로 모델 재사용
     foundInd = None
     for i in range(len(fake_db)):
@@ -60,7 +60,7 @@ def putBook(book_id:int, book_update:BookCreate): #id가 없는 것은 동일하
     # 그렇지 않다면 해당 인덱스의 책을 업데이트
     fake_db[i] = Book(id=book_id, **book_update.dict())
 
-@app.delete("/books/{id}", summary="특정 도서 삭제")
+@app.delete("/books/{id}", status_code=204,summary="특정 도서 삭제")
 def deleteBook(book_id:int):
     foundInd = None
     for i in range(len(fake_db)):
