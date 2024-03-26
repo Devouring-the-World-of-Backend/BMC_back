@@ -6,7 +6,7 @@ class BookCreate(BaseModel): #클라이언트에서 제공하는 모델 형식
     title: str
     author: str
     description: str
-    published_year: int = Field(..., ge=1800, le=datetime.now().year)
+    published_year: int = Field(..., ge=1800, le=datetime.now().year) #년 데이터에 대한 데이터 검증 
 
 class Book(BookCreate): #서버에서 처리하는 모델 형식
     id: int
