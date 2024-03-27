@@ -16,15 +16,52 @@ class Book(BookCreate): #서버에서 처리하는 모델 형식
     id: int
 
 fake_id = 1
-fake_data = {
+fake_data = []
+fake_data.append({ #정렬 기능 테스트를 위해
     "id": fake_id,
-    "title": "new book",
-    "author": "BMC",
+    "title": "new book1",
+    "author": "BMC3",
     "description": "Book data for test",
-    "published_year": 2021
-}
+    "published_year": 2018
+})
+fake_id += 1
+fake_data.append({
+    "id": fake_id,
+    "title": "new book3",
+    "author": "BMC6",
+    "description": "Book data for test",
+    "published_year": 2009
+})
+fake_id += 1
+fake_data.append({
+    "id": fake_id,
+    "title": "new book6",
+    "author": "BMC1",
+    "description": "Book data for test",
+    "published_year": 2020
+})
+fake_id += 1
+fake_data.append({
+    "id": fake_id,
+    "title": "new book4",
+    "author": "BMC7",
+    "description": "Book data for test",
+    "published_year": 2019
+})
+fake_id += 1
+fake_data.append({
+    "id": fake_id,
+    "title": "new book2",
+    "author": "BMC0",
+    "description": "Book data for test",
+    "published_year": 2023
+})
+fake_id += 1
 
-fake_db = [Book(**fake_data)]
+fake_db = []
+
+for i in fake_data:
+    fake_db.append(Book(**i))
 
 app = FastAPI()
 app.add_middleware(
@@ -89,6 +126,8 @@ def deleteBook(id:int):
     return {"message": "정상적으로 삭제되었습니다."}
 
 def searchBooksFunc(
+    selectType: str,
+    selectDir: str,
     title: Optional[str] = None,
     author: Optional[str] = None,
     published_year: Optional[int] = None):
@@ -111,14 +150,20 @@ def searchBooksFunc(
             if(published_year == item.published_year): # 입력한 published_year이 동일한지
                 tmpRes.append(item)
         res = tmpRes
+
+    if(selectType != 'org'):
+        reverseChecker = {'asc' : False, 'desc' : True}
+        res.sort(key=lambda book: getattr(book, selectType), reverse=reverseChecker[selectDir])
     return res
     
 @app.get("/books/search", summary="조건에 맞는 도서 검색")
 def searchBooks(
+    selectType: str,
+    selectDir: str,
     title: Optional[str] = None,
     author: Optional[str] = None,
-    published_year: Optional[int] = None 
+    published_year: Optional[int] = None
 ): # 셋 다 None인 경우는 Client에서 처리
-    return searchBooksFunc(title,author,published_year)
+    return searchBooksFunc(selectType,selectDir,title,author,published_year)
     
 
