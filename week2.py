@@ -15,48 +15,43 @@ class BookCreate(BaseModel): #클라이언트에서 제공하는 모델 형식
 class Book(BookCreate): #서버에서 처리하는 모델 형식
     id: int
 
-fake_id = 1
 fake_data = []
 fake_data.append({ #정렬 기능 테스트를 위해
-    "id": fake_id,
+    "id": 1,
     "title": "new book1",
     "author": "BMC3",
     "description": "Book data for test",
     "published_year": 2018
 })
-fake_id += 1
 fake_data.append({
-    "id": fake_id,
+    "id": 2,
     "title": "new book3",
     "author": "BMC6",
     "description": "Book data for test",
     "published_year": 2009
 })
-fake_id += 1
 fake_data.append({
-    "id": fake_id,
+    "id": 3,
     "title": "new book6",
     "author": "BMC1",
     "description": "Book data for test",
     "published_year": 2020
 })
-fake_id += 1
 fake_data.append({
-    "id": fake_id,
+    "id": 4,
     "title": "new book4",
     "author": "BMC7",
     "description": "Book data for test",
     "published_year": 2019
 })
-fake_id += 1
 fake_data.append({
-    "id": fake_id,
+    "id": 5,
     "title": "new book2",
     "author": "BMC0",
     "description": "Book data for test",
     "published_year": 2023
 })
-fake_id += 1
+fake_id = 5
 
 fake_db = []
 
@@ -84,6 +79,7 @@ def root():
 
 @app.get("/books/", status_code=200, summary="모든 도서 목록을 반환")
 def getBooks():
+    print(fake_db)
     return fake_db
 
 @app.post("/books/", status_code=201, summary="새로운 도서 추가")
@@ -111,7 +107,7 @@ def putBook(id:int, book_update:BookCreate): #id가 없는 것은 동일하므�
     if foundInd is None: # 해당 id의 도서가 없는 경우, 404 오류 반환
         raise HTTPException(status_code=404, detail="찾고자 하는 책이 없습니다.")
     # 그렇지 않다면 해당 인덱스의 책을 업데이트
-    fake_db[i] = Book(id=id, **book_update.dict())
+    fake_db[foundInd] = Book(id=id, **book_update.dict())
 
 @app.delete("/books/{id}/", status_code=204,summary="특정 도서 삭제")
 def deleteBook(id:int):
