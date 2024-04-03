@@ -1,69 +1,81 @@
-from sqlalchemy.ext.asyncio import AsyncSession as Session
-from week3.schemas import book,user
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from week3.db import models
+from week3.schemas import book, user
 
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+async def get_user(db: AsyncSession, user_id: int):
+    async with db as session:
+        result = await session.execute(select(models.User).filter(models.User.id == user_id))
+        return result.scalars().first()
 
-def create_user(db: Session, user: user.UserCreate):
+async def create_user(db: AsyncSession, user: user.UserCreate):
     db_user = models.User(name=user.name, phone=user.phone)
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    await db.commit()
+    await db.refresh(db_user)
     return db_user
 
-def get_books(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Book).offset(skip).limit(limit).all()
+async def get_books(db: AsyncSession, skip: int = 0, limit: int = 100):
+    async with db as session:
+        result = await session.execute(select(models.Book).offset(skip).limit(limit))
+        return result.scalars().all()
 
-def create_book(db: Session, book: book.BookCreate):
+async def create_book(db: AsyncSession, book: book.BookCreate):
     db_book = models.Book(**book.dict())
     db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
+    await db.commit()
+    await db.refresh(db_book)
     return db_book
 
-def update_book(db: Session, book_id: int, book: book.BookUpdate):
-    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
-    if db_book:
-        update_data = book.dict(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_book, key, value)
-        db.commit()
-        db.refresh(db_book)
-        return db_book
+async def update_book(db: AsyncSession, book_id: int, book: book.BookUpdate):
+    async with db as session:
+        result = await session.execute(select(models.Book).filter(models.Book.id == book_id))
+        db_book = result.scalars().first()
+        if db_book:
+            update_data = book.dict(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(db_book, key, value)
+            await db.commit()
+            await db.refresh(db_book)
+            return db_book
     return None
 
-def delete_book(db: Session, book_id: int):
-    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
-    if db_book:
-        db.delete(db_book)
-        db.commit()
-        return db_book
+async def delete_book(db: AsyncSession, book_id: int):
+    async with db as session:
+        result = await session.execute(select(models.Book).filter(models.Book.id == book_id))
+        db_book = result.scalars().first()
+        if db_book:
+            await session.delete(db_book)
+            await session.commit()
+            return db_book
     return None
 
-def borrow_book(db: Session, book_id: int, user_id: int):
-    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
-    if(db_book): 
-        if(not db_book.user_id): # 책이 존재하고 현재 빌려지지 않은 상태여야 함
+async def borrow_book(db: AsyncSession, book_id: int, user_id: int):
+    result = await db.execute(
+        select(models.Book).options(selectinload(models.Book.user)).filter(models.Book.id == book_id)
+    )
+    db_book = result.scalars().first()
+    if db_book:
+        if not db_book.user_id:  # 책이 대여되지 않았다면
             db_book.user_id = user_id
-            db.commit()
+            await db.commit()  # 세션을 사용하여 변경 사항을 커밋
+            return db_book
+        else:  # 책이 이미 대여된 상태
+            return 0
+    else:
+        return None  # 책이 데이터베이스에 존재하지 않음
+
+async def return_book(db: AsyncSession, book_id: int, user_id: int):
+    result = await db.execute(
+        select(models.Book).options(selectinload(models.Book.user)).filter(models.Book.id == book_id)
+    )
+    db_book = result.scalars().first()
+    if db_book:
+        if db_book.user_id and db_book.user_id == user_id:
+            db_book.user_id = None
+            await db.commit()
             return db_book
         else:
-            return 0 # 책이 빌려진 상태임을 알림
-    else:
-        return None # 책이 존재하지 않음
-    
-def return_book(db: Session, book_id: int, user_id: int):
-    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
-    if(db_book): 
-        if(db_book.user_id): # 책이 존재하고 현재 빌린 상태
-            if(db_book.user_id == user_id): # 빌린 사람과 요청인이 같은 경우
-                db_book.user_id = None
-                db.commit()
-                return db_book
-            else:
-                return -1 # 빌린 사람과 다른 상태임을 알림
-        else:
-            return 0 # 책이 빌려지지 않은 상태임을 알림
-    else:
-        return None # 책이 존재하지 않음
+            return 0
+    return None

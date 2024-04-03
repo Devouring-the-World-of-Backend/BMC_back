@@ -8,8 +8,13 @@ database_url = os.getenv('DATABASE_URL', 'sqlite:///week3.db')
 #engine 생성
 engine = create_async_engine("sqlite+aio"+database_url, echo=True)
 
-#session 구성(Async)
-Session = sessionmaker(bind=engine, class_=AsyncSession)
+#비동기 세션 구성
+Session = sessionmaker(
+    autocommit=False, 
+    autoflush=False, 
+    bind=engine, 
+    class_=AsyncSession
+)
 
 #declarative_base 인스턴스 생성
 Base = declarative_base()
