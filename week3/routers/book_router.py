@@ -6,12 +6,13 @@ from typing import List
 
 router = APIRouter()
 
-def get_db(): # 요청 동안 세션이 열려있도록
-    db = Session()
+# 비동기 SQLAlchemy 세션 의존성
+async def get_db():
+    async_session = Session()
     try:
-        yield db
+        yield async_session
     finally:
-        db.close()
+        await async_session.close()
 
 # 새로운 책을 데이터베이스에 추가
 @router.post("/books/", response_model=book.Book)

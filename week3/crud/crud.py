@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 from week3.schemas import book,user
 from week3.db import models
 
