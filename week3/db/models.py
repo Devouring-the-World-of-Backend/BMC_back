@@ -14,11 +14,20 @@ class User(Base):
     name = Column(String, nullable=False)
     phone = Column(String, unique=True, nullable=False)
 
+    #책과 일대다 연결 설정
+    books = relationship("Book", back_populates="user")
+
 class Book(Base):
     __tablename__ = 'books'
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     author = Column(String, nullable=False)
+
+    #외래 키로 user.id를 참조함. 만약 값이 존재하면 빌려진 상태
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    #유저와 일대다 연결 설정
+    user = relationship("User", back_populates="books")
 
     #카테고리와 다대다 연결 설정
     categories = relationship("Category", secondary=book_category, back_populates="books") 

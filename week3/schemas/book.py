@@ -11,6 +11,7 @@ class Book(BaseModel):
     id: int
     title: str
     author: str
+    user_id: Optional[int] = None
 
     class Config:
         orm_mode = True

@@ -40,3 +40,30 @@ def delete_book(db: Session, book_id: int):
         db.commit()
         return db_book
     return None
+
+def borrow_book(db: Session, book_id: int, user_id: int):
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if(db_book): 
+        if(not db_book.user_id): # 책이 존재하고 현재 빌려지지 않은 상태여야 함
+            db_book.user_id = user_id
+            db.commit()
+            return db_book
+        else:
+            return 0 # 책이 빌려진 상태임을 알림
+    else:
+        return None # 책이 존재하지 않음
+    
+def return_book(db: Session, book_id: int, user_id: int):
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if(db_book): 
+        if(db_book.user_id): # 책이 존재하고 현재 빌린 상태
+            if(db_book.user_id == user_id): # 빌린 사람과 요청인이 같은 경우
+                db_book.user_id = None
+                db.commit()
+                return db_book
+            else:
+                return -1 # 빌린 사람과 다른 상태임을 알림
+        else:
+            return 0 # 책이 빌려지지 않은 상태임을 알림
+    else:
+        return None # 책이 존재하지 않음
