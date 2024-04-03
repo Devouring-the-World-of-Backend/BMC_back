@@ -30,9 +30,7 @@ class Book(Base):
     author = Column(String, nullable=False)
 
     #카테고리와 다대다 연결 설정
-    categories = relationship("Category", secondary=book_category, back_populates="books")
-
-    
+    categories = relationship("Category", secondary=book_category, back_populates="books") 
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -41,9 +39,6 @@ class Category(Base):
 
     #책과 다대다 연결 설정
     books = relationship("Book", secondary=book_category, back_populates="categories")
-
-
-
 
 #session 구성
 Session = sessionmaker(bind=engine)
